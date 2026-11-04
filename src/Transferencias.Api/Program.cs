@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Scalar.AspNetCore;
 using Transferencias.Domain;
 using Transferencias.Infrastructure;
 
@@ -8,8 +9,15 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Banco")));
 builder.Services.AddScoped<IContaRepository, ContaRepository>();
 builder.Services.AddScoped<TransferenciaService>();
+builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+    app.MapScalarApiReference();
+}
 
 using (var scope = app.Services.CreateScope())
     await scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.EnsureCreatedAsync();
