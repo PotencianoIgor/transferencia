@@ -8,7 +8,7 @@ namespace Transferencias.Tests;
 
 public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:17").WithDatabase("transferencias").Build();
+    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:18").WithDatabase("transferencias").Build();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder) =>
         builder.UseSetting("ConnectionStrings:Banco", _postgres.GetConnectionString());

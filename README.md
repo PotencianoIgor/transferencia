@@ -53,7 +53,25 @@ tests/
   Transferencias.Tests
     TransferenciaServiceTests    Regras de negócio com repositório fake
     ApiTests                     HTTP + PostgreSQL real: status, saldos, movimentações e falha sem efeito parcial
+    ConcorrenciaTests            Questão 2: duas transferências simultâneas sem saldo para ambas
 ```
+
+## Questão 2: concorrência
+
+**Cenário:** a conta tem 5000 centavos e recebe duas transferências simultâneas de 4000. As duas eram concluídas.
+
+**Causa:** a transferência lê o saldo, valida e depois grava (*check-then-act*), sem nada que impeça outra transação de ler o mesmo saldo nesse intervalo. As duas requisições leem 5000, as duas passam na validação, e as duas gravam saldo 1000 e registram a transferência. Uma das atualizações se perde (*lost update*) e a conta entrega 8000 tendo só 5000.
+
+**Correção:** dentro da transação, as contas são lidas com `SELECT ... FOR UPDATE` (`ContaRepository.ObterParaAtualizacaoAsync`). A segunda transação espera a primeira terminar e então lê o saldo já atualizado (1000), e a validação recusa com 409. As contas são travadas em ordem (`ORDER BY id`) para que transferências cruzadas (A→B e B→A) não entrem em deadlock.
+
+**Teste:** `ConcorrenciaTests` prepara uma conta com 5000 centavos, dispara as duas requisições ao mesmo tempo e verifica:
+
+- exatamente uma resposta 201 e uma 409
+- saldo final da origem igual a 1000 (nunca negativo)
+- destino creditado uma única vez
+- uma única movimentação registrada
+
+O histórico do git mostra o teste falhando antes da correção (commit "Questão 2: teste que reproduz...") e passando depois.
 
 ## Decisões
 
@@ -67,6 +85,6 @@ tests/
 
 - [.NET 10 / ASP.NET Core Minimal APIs](https://learn.microsoft.com/aspnet/core/fundamentals/minimal-apis)
 - [Entity Framework Core](https://learn.microsoft.com/ef/core/) e [Npgsql EF Core Provider](https://www.npgsql.org/efcore/)
-- [PostgreSQL 17](https://www.postgresql.org/docs/17/)
+- [PostgreSQL 18](https://www.postgresql.org/docs/18/)
 - [xUnit](https://xunit.net/), [WebApplicationFactory](https://learn.microsoft.com/aspnet/core/test/integration-tests) e [Testcontainers for .NET](https://dotnet.testcontainers.org/)
 - Docker

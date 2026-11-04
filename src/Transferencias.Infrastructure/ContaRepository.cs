@@ -11,7 +11,7 @@ public class ContaRepository(AppDbContext context) : IContaRepository
 
     public async Task<IReadOnlyList<Conta>> ObterParaAtualizacaoAsync(string origem, string destino) =>
         await context.Contas
-            .Where(c => c.Id == origem || c.Id == destino)
+            .FromSql($"SELECT * FROM contas WHERE id IN ({origem}, {destino}) ORDER BY id FOR UPDATE")
             .ToListAsync();
 
     public Task<Conta?> ObterAsync(string id) =>
