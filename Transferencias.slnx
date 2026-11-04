@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Transferencias.Api/Transferencias.Api.csproj" />
+    <Project Path="src/Transferencias.Domain/Transferencias.Domain.csproj" />
+    <Project Path="src/Transferencias.Infrastructure/Transferencias.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Transferencias.Tests/Transferencias.Tests.csproj" />
+  </Folder>
+</Solution>
